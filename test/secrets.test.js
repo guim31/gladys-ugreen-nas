@@ -13,45 +13,31 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { WIDGET_KEY } from '../src/hub.js';
 import { PASSWORD } from './helpers/fakeUgos.js';
+import { captureLogs } from './helpers/logs.js';
 import { CONFIG, createDevices, createWorld, tick } from './helpers/world.js';
-
-/** Runs `fn` with every log line captured, at the debug level. */
-async function captureLogs(fn) {
-  const lines = [];
-  const original = { log: console.log, error: console.error, level: process.env.LOG_LEVEL };
-  process.env.LOG_LEVEL = 'debug';
-  console.log = (...args) => lines.push(args.map(String).join(' '));
-  console.error = (...args) => lines.push(args.map((a) => a?.stack ?? String(a)).join(' '));
-  try {
-    await fn();
-  } finally {
-    console.log = original.log;
-    console.error = original.error;
-    process.env.LOG_LEVEL = original.level;
-  }
-  return lines.join('\n');
-}
 
 test('neither the password nor a session token is logged, stored or sent to Gladys', async () => {
   let world;
   const tokens = new Set();
-  const logs = await captureLogs(async () => {
-    world = await createWorld();
-    await createDevices(world);
-    world.nas.expireTokens();
-    await tick(world);
-    world.nas.setPoolStatus('pool1', 2);
-    await tick(world);
-    await world.fake.action('test_connection');
-    await world.fake.widgetGet(WIDGET_KEY, { language: 'fr' });
-    world.nas.failure = 'down';
-    await tick(world);
-    await tick(world);
-    world.nas.failure = null;
-    await world.fake.configUpdated({ ...CONFIG, password: `${PASSWORD}-typo` });
-    await world.fake.action('test_connection');
-    await world.app.stop();
-  });
+  const logs = (
+    await captureLogs(async () => {
+      world = await createWorld();
+      await createDevices(world);
+      world.nas.expireTokens();
+      await tick(world);
+      world.nas.setPoolStatus('pool1', 2);
+      await tick(world);
+      await world.fake.action('test_connection');
+      await world.fake.widgetGet(WIDGET_KEY, { language: 'fr' });
+      world.nas.failure = 'down';
+      await tick(world);
+      await tick(world);
+      world.nas.failure = null;
+      await world.fake.configUpdated({ ...CONFIG, password: `${PASSWORD}-typo` });
+      await world.fake.action('test_connection');
+      await world.app.stop();
+    })
+  ).join('\n');
 
   for (const request of world.nas.requests) {
     if (request.query.token) {

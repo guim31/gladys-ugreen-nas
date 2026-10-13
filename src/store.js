@@ -22,6 +22,7 @@ export class Store {
     this.pending = null;
     this.writing = null;
     this.written = null;
+    this.failing = false;
   }
 
   async load() {
@@ -55,8 +56,14 @@ export class Store {
           await writeFile(temporary, snapshot);
           await rename(temporary, this.path);
           this.written = snapshot;
+          if (this.failing) {
+            this.failing = false;
+            logger.info(`${this.path} written again`);
+          }
         } catch (err) {
-          logger.warn(`Cannot write ${this.path}: ${err.message}`);
+          // Tried again at every read until it works: one line, not one per read.
+          (this.failing ? logger.debug : logger.warn)(`Cannot write ${this.path}: ${err.message}`);
+          this.failing = true;
         }
       });
       this.writing = this.pending;

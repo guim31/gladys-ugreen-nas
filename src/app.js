@@ -62,7 +62,13 @@ export function registerHandlers(gladys, options = {}) {
     }
   });
 
-  gladys.onScanRequest(whenReady(() => hub.rediscover()));
+  // One info line per action of the user; the reads themselves stay at debug.
+  gladys.onScanRequest(
+    whenReady(() => {
+      logger.info('Search requested');
+      return hub.rediscover();
+    }),
+  );
 
   // The devices are published with should_poll: false (the hub reads the NAS
   // on its own timer); this only serves a Gladys that would poll anyway.
@@ -80,13 +86,17 @@ export function registerHandlers(gladys, options = {}) {
 
   gladys.onConfigUpdated(
     whenReady(async (newConfig) => {
+      logger.info('Configuration saved');
       await hub.reconfigure(normalizeConfig(newConfig));
     }),
   );
 
   gladys.onAction(
     'test_connection',
-    whenReady(() => hub.testConnection()),
+    whenReady(() => {
+      logger.info('Connection test requested');
+      return hub.testConnection();
+    }),
   );
 
   for (const [key, widget] of Object.entries(WIDGETS)) {
@@ -96,9 +106,10 @@ export function registerHandlers(gladys, options = {}) {
     );
     gladys.onWidgetAction(
       key,
-      whenReady((actionKey, params, context = {}) =>
-        widget.action(hub, { actionKey, params, ...context }),
-      ),
+      whenReady((actionKey, params, context = {}) => {
+        logger.info(`Widget action ${actionKey}`);
+        return widget.action(hub, { actionKey, params, ...context });
+      }),
     );
   }
 
