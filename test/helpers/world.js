@@ -1,8 +1,8 @@
 // -----------------------------------------------------------------------------
 // A complete test world: the SDK's fake Gladys, a fake NAS on a fake network,
 // a temporary /data and a manual clock, with the integration wired on top
-// through registerHandlers. No timer runs: the tests read the NAS with
-// `world.hub.poll()`.
+// through registerHandlers. No timer runs unless asked (`timers: true`, under
+// mocked timers): the tests read the NAS with `world.hub.poll()`.
 // -----------------------------------------------------------------------------
 
 import { mkdtempSync } from 'node:fs';
@@ -47,6 +47,7 @@ export function createClock(start = Date.UTC(2026, 9, 13, 10, 0, 0)) {
  * @param {object} [options.config] raw integration config
  * @param {Array} [options.devices] devices already created in Gladys
  * @param {boolean} [options.connect]
+ * @param {boolean} [options.timers] the hub's own timers (mock them first)
  */
 export async function createWorld({
   clock = createClock(),
@@ -57,13 +58,14 @@ export async function createWorld({
   connect = true,
   dataDir = mkdtempSync(join(tmpdir(), 'gladys-ugreen-')),
   timings = {},
+  timers = false,
 } = {}) {
   const net = createNetwork(network ?? { [ORIGIN]: nas });
   const gladys = createFakeGladys({ config, devices });
   const app = registerHandlers(gladys, {
     store: new Store(dataDir),
     request: net.request,
-    timers: false,
+    timers,
     timings,
     now: clock.now,
   });

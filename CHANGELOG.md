@@ -10,6 +10,19 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Added
+
+- Documentation in German (`docs/de.md`) and Spanish (`docs/es.md`), published
+  by the store since Gladys 5.2.
+
+### Changed
+
+- Quieter logs: a normal read of the NAS writes nothing above the debug level
+  (`LOG_LEVEL=debug` shows each read); a failure that repeats on every read
+  (Gladys refusing states, `/data` not writable…) writes one line when it
+  starts and one when it ends; each action of the user (save, search, test,
+  widget refresh) writes one info line.
+
 ## [1.0.1] - 2026-10-13
 
 ### Added

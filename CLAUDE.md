@@ -44,7 +44,7 @@ src/ugos/client.js                UGOS Pro API: RSA login, session token, the fo
 src/ugos/model.js                 UGOS answers -> one plain snapshot, state codes
 src/ugos/http.js                  the one function that talks to the network
 gladys-assistant-integration.json manifest: name, config_schema, actions, triggers, widget
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en, fr mandatory)
 test/                             node --test, against the SDK's fake Gladys and a fake NAS
 test/fixtures/ugos/               reconstructed, anonymized UGOS answers (see its README)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
@@ -77,7 +77,7 @@ test/fixtures/ugos/               reconstructed, anonymized UGOS answers (see it
   code (defaults, action, scene and widget handlers): change both sides
   together.
 - **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+  manifest texts, and `docs/en.md` / `docs/fr.md` (with `de.md` / `es.md`), kept in sync.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -242,5 +242,7 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 Tout texte montré à l'utilisateur existe en **`en`, `fr`, `de` et `es`** : manifeste, contenu des widgets, messages,
 noms de fonctionnalités. L'allemand **tutoie** (« du »), l'espagnol **vouvoie** (« usted ») : décision de Guilhem,
 appliquée à ses 21 intégrations. `test/i18n.test.js` doit échouer sur une langue manquante, un texte vide ou trop
-long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store ne publie que `docs/en.md` et `docs/fr.md`
-(`DOCS_LANGUAGES` d'integration-store) : pas de doc de/es.
+long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store publie `docs/en.md` et `docs/fr.md`
+(obligatoires) et, depuis Gladys 5.2, `docs/de.md` et `docs/es.md` s'ils existent (`DOCS_OPTIONAL_LANGUAGES`
+d'integration-store) : ce dépôt a les quatre, avec les mêmes sections (`test/i18n.test.js`) et le vocabulaire de
+l'interface de Gladys (`front/src/config/i18n/de.json`, `es.json`).

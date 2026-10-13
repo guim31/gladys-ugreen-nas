@@ -15,7 +15,8 @@ when a volume or a disk needs attention and a dashboard widget.
 > tested against reconstructed answers. Reports from real NAS are the most
 > useful contribution: [open an issue](https://github.com/guim31/gladys-ugreen-nas/issues).
 
-User documentation: [English](docs/en.md) · [Français](docs/fr.md).
+User documentation: [English](docs/en.md) · [Français](docs/fr.md) ·
+[Deutsch](docs/de.md) · [Español](docs/es.md).
 
 ## Features
 

@@ -15,6 +15,10 @@
 // SDK); every value is sent again after 6 hours unchanged, before the core
 // marks it outdated.
 //
+// Logs stay quiet: a normal read writes at the debug level only, and a failure
+// that repeats on every read (Gladys refusing the states, a NAS that stays
+// silent) writes one line when it starts and one when it ends.
+//
 // A refused password is never retried on the timer: UGOS blocks an address
 // after a few failed logins. Saving the configuration, "Test the connection"
 // or the Refresh button of the widget try again.
@@ -93,6 +97,8 @@ export class NasHub {
     this.retryTimer = null;
     this.polling = null;
     this.stopped = false;
+    /** The failures already logged, until they end (see failed/recovered). */
+    this.failing = new Set();
   }
 
   resetRead() {
@@ -164,8 +170,9 @@ export class NasHub {
     this.pollTimer = setTimeout(async () => {
       try {
         await this.afterChanges(await this.poll());
+        this.recovered('poll');
       } catch (err) {
-        logger.error('Poll failed', err);
+        this.failed('poll', 'Read cycle failed', err);
       }
       this.schedulePoll();
     }, this.config.pollIntervalMs);
@@ -281,8 +288,9 @@ export class NasHub {
     try {
       await this.gladys.publishDiscoveredDevices(devices);
       this.discovered = key;
+      this.recovered('discovery');
     } catch (err) {
-      logger.warn(`Discovered devices refused: ${err.message}`);
+      this.failed('discovery', `Discovered devices refused: ${err.message}`);
     }
   }
 
@@ -345,6 +353,9 @@ export class NasHub {
 
   async applySuccess(raw) {
     const snapshot = parseSnapshot(raw);
+    logger.debug(
+      `Read: ${snapshot.volumes?.length ?? 0} volume(s), ${snapshot.disks?.length ?? 0} disk(s)`,
+    );
     const widgetChanged = this.error !== null || this.readAt === 0 || this.down;
     if (this.error || this.down) {
       logger.info(`${this.config.url ? hostOf(this.config.url) : 'NAS'} answers again`);
@@ -440,7 +451,8 @@ export class NasHub {
     this.retryTimer = setTimeout(() => {
       this.poll()
         .then((changed) => this.afterChanges(changed))
-        .catch((err) => logger.error('Retry failed', err));
+        .then(() => this.recovered('poll'))
+        .catch((err) => this.failed('poll', 'Read cycle failed', err));
     }, this.timings.retryMs);
     this.retryTimer.unref?.();
   }
@@ -448,8 +460,27 @@ export class NasHub {
   async fireEvent(key, data) {
     try {
       await this.gladys.publishSceneEvent(key, data);
+      this.recovered('scene event');
     } catch (err) {
-      logger.warn(`Scene event ${key} refused: ${err.message}`);
+      this.failed('scene event', `Scene event ${key} refused: ${err.message}`);
+    }
+  }
+
+  /**
+   * A failure that may repeat on every read: logged when it starts, then at
+   * the debug level only, until recovered() logs its end.
+   */
+  failed(key, message, err) {
+    // An exception (err given) is a bug: error, with its stack.
+    const first = err ? logger.error : logger.warn;
+    const log = this.failing.has(key) ? logger.debug : first;
+    this.failing.add(key);
+    log(...(err ? [message, err] : [message]));
+  }
+
+  recovered(key) {
+    if (this.failing.delete(key)) {
+      logger.info(`${key}: back to normal`);
     }
   }
 
@@ -495,8 +526,9 @@ export class NasHub {
       }
       // Batches of 100 at most: done by the SDK.
       await this.gladys.publishChangedStates(states, { heartbeat: this.timings.heartbeatMs });
+      this.recovered('states');
     } catch (err) {
-      logger.warn(`States refused: ${err.message}`);
+      this.failed('states', `States refused: ${err.message}`);
     }
   }
 
@@ -524,6 +556,7 @@ export class NasHub {
         entries.push({ external_id: device.external_id, transport });
       }
     }
+    let refused = false;
     for (let at = 0; at < entries.length; at += MAX_TRANSPORTS_PER_REQUEST) {
       const batch = entries.slice(at, at + MAX_TRANSPORTS_PER_REQUEST);
       try {
@@ -532,8 +565,12 @@ export class NasHub {
           this.transports.set(entry.external_id, entry.transport);
         }
       } catch (err) {
-        logger.warn(`Transports refused: ${err.message}`);
+        refused = true;
+        this.failed('transports', `Transports refused: ${err.message}`);
       }
+    }
+    if (entries.length > 0 && !refused) {
+      this.recovered('transports');
     }
   }
 
@@ -570,8 +607,9 @@ export class NasHub {
     try {
       await this.gladys.setConnectionStatus(status.connected, status.message);
       this.connection = key;
+      this.recovered('connection status');
     } catch (err) {
-      logger.warn(`Connection status refused: ${err.message}`);
+      this.failed('connection status', `Connection status refused: ${err.message}`);
     }
   }
 

@@ -2,8 +2,9 @@
 // Every text Gladys shows exists in the four languages of its interface
 // (English, French, German, Spanish): the manifest, the message tables of the
 // code, the feature names. German says "du", never the polite "Sie"; Spanish
-// says "usted". The store publishes docs/en.md and docs/fr.md only: those two
-// have the same sections and name every feature, trigger and button.
+// says "usted". The store publishes docs/en.md and docs/fr.md, and since
+// Gladys 5.2 docs/de.md and docs/es.md too: the four have the same sections
+// and name every feature, trigger and button.
 // (Adapted from guim31/gladys-glances.)
 // -----------------------------------------------------------------------------
 
@@ -224,7 +225,7 @@ test('the guard catches a missing language, an empty text and the wrong register
 
 // --- Documentation -------------------------------------------------------------
 
-const DOC_LANGS = ['en', 'fr'];
+const DOC_LANGS = LANGS;
 const docs = Object.fromEntries(
   await Promise.all(
     DOC_LANGS.map(async (lang) => [
@@ -240,7 +241,7 @@ const headings = (markdown) =>
     .filter((line) => /^#{1,3} /.test(line))
     .map((line) => line.match(/^#+/)[0].length);
 
-test('the two documentation files the store publishes have the same sections', () => {
+test('the four documentation files exist and have the same sections', () => {
   for (const lang of DOC_LANGS) {
     assert.ok(docs[lang].length >= 300, `docs/${lang}.md is too short for the store`);
     assert.deepEqual(headings(docs[lang]), headings(docs.en), `docs/${lang}.md sections`);
@@ -275,7 +276,16 @@ test('the documentation says it was developed without the hardware, and is not a
   assert.match(docs.fr, /Développée sans le matériel : retours bienvenus/);
   assert.match(docs.en, /Not affiliated with/);
   assert.match(docs.fr, /Non affiliée à UGREEN/);
+  assert.match(docs.de, /Ohne die Hardware entwickelt: Rückmeldungen willkommen/);
+  assert.match(docs.de, /Nicht mit UGREEN verbunden/);
+  assert.match(docs.es, /Desarrollada sin el hardware: se agradecen los comentarios/);
+  assert.match(docs.es, /No afiliada a UGREEN/);
   for (const lang of DOC_LANGS) {
     assert.match(docs[lang], /github\.com\/guim31\/gladys-ugreen-nas\/issues/);
   }
+});
+
+test('the German documentation says "du", the Spanish one "usted"', () => {
+  assert.doesNotMatch(docs.de, POLITE_GERMAN);
+  assert.doesNotMatch(docs.es, FAMILIAR_SPANISH);
 });
