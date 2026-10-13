@@ -1,0 +1,53 @@
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "result": [
+      {
+        "name": "sda",
+        "dev_name": "sda",
+        "label": "Disk 1",
+        "slot": 1,
+        "type": 0,
+        "interface_type": "SATA",
+        "brand": "WDC",
+        "model": "WDC WD40EFPX-68C6CN0",
+        "serial": "WD-TESTDISK0001",
+        "size": 4000787030016,
+        "status": 1,
+        "temperature": 36,
+        "power_on_hours": 5321
+      },
+      {
+        "name": "sdb",
+        "dev_name": "sdb",
+        "label": "Disk 2",
+        "slot": 2,
+        "type": 0,
+        "interface_type": "SATA",
+        "brand": "WDC",
+        "model": "WDC WD40EFPX-68C6CN0",
+        "serial": "WD-TESTDISK0002",
+        "size": 4000787030016,
+        "status": 1,
+        "temperature": 37,
+        "power_on_hours": 5320
+      },
+      {
+        "name": "nvme0n1",
+        "dev_name": "nvme0n1",
+        "label": "M.2 Drive 1",
+        "slot": 5,
+        "type": 2,
+        "interface_type": "NVMe",
+        "brand": "Samsung",
+        "model": "Samsung SSD 990 EVO 1TB",
+        "serial": "S6TESTNVME0001",
+        "size": 1000204886016,
+        "status": 1,
+        "temperature": 41,
+        "power_on_hours": 812
+      }
+    ]
+  }
+}

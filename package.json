@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-ugreen-nas",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Gladys Assistant integration for UGREEN NASync (UGOS Pro): CPU, memory, temperatures, volumes and disks. Not affiliated with UGREEN.",
   "type": "module",
   "main": "index.js",
   "scripts": {

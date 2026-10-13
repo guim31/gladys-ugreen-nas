@@ -1,0 +1,65 @@
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "result": [
+      {
+        "name": "pool1",
+        "label": "Storage Pool 1",
+        "level": "raid1",
+        "status": 0,
+        "total": 3998614552576,
+        "used": 3998614552576,
+        "free": 0,
+        "available": 0,
+        "total_disk_num": 2,
+        "disks": [
+          { "label": "Disk 1", "dev_name": "sda", "slot": 1, "serial": "WD-TESTDISK0001" },
+          { "label": "Disk 2", "dev_name": "sdb", "slot": 2, "serial": "WD-TESTDISK0002" }
+        ],
+        "volumes": [
+          {
+            "name": "volume1",
+            "label": "Volume 1",
+            "poolname": "pool1",
+            "status": 0,
+            "health": 0,
+            "filesystem": "btrfs",
+            "total": 3900000000000,
+            "used": 2457000000000,
+            "available": 1443000000000,
+            "hascache": false
+          }
+        ]
+      },
+      {
+        "name": "pool2",
+        "label": "Storage Pool 2",
+        "level": "basic",
+        "status": 0,
+        "total": 999653638144,
+        "used": 999653638144,
+        "free": 0,
+        "available": 0,
+        "total_disk_num": 1,
+        "disks": [
+          { "label": "M.2 Drive 1", "dev_name": "nvme0n1", "slot": 5, "serial": "S6TESTNVME0001" }
+        ],
+        "volumes": [
+          {
+            "name": "volume2",
+            "label": "Volume 2",
+            "poolname": "pool2",
+            "status": 0,
+            "health": 0,
+            "filesystem": "ext4",
+            "total": 980000000000,
+            "used": 120000000000,
+            "available": 860000000000,
+            "hascache": false
+          }
+        ]
+      }
+    ]
+  }
+}

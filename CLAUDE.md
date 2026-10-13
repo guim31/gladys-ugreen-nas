@@ -31,16 +31,22 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK bootstrap only: registerHandlers, shutdown, connect()
+src/app.js                        every SDK handler, registered before connect(), on the hub
+src/hub.js                        NasHub: timer, reads, states, scene events, status, views
+src/devices.js                    device blueprints: features, names (4 languages), states
+src/alerts.js                     Watcher: volume/disk/unreachable transitions (scene triggers)
+src/widgets.js                    dashboard widget `nas` (manifest `widgets`)
+src/texts.js                      every other user-facing text, in en/fr/de/es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
+src/store.js                      the Watcher tables under /data (never a secret)
+src/ugos/client.js                UGOS Pro API: RSA login, session token, the four reads
+src/ugos/model.js                 UGOS answers -> one plain snapshot, state codes
+src/ugos/http.js                  the one function that talks to the network
+gladys-assistant-integration.json manifest: name, config_schema, actions, triggers, widget
 docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+test/                             node --test, against the SDK's fake Gladys and a fake NAS
+test/fixtures/ugos/               reconstructed, anonymized UGOS answers (see its README)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -126,7 +132,9 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   (`gladys.getDevices()`) ou changer d'identifiant.
 - Les **noms de fonctionnalités sont figés à la création**. Et quand une fonctionnalité est seule
   de son type sur l'appareil, le tableau de bord affiche le libellé générique du type à la place
-  du nom publié.
+  du nom publié. Le front (`front/src/utils/device.js`, `matchFeature`, 5.1.4) ne compare que le
+  **`type`**, pas la catégorie : `device-temperature-sensor/decimal` et `duration/decimal` sur le
+  même appareil comptent comme deux `decimal`, et leurs noms s'affichent.
 - **Aucune commande d'appareil ne permet un choix multiple** : un `text/select` n'a qu'un choix
   actif.
 - Un changement de structure fait proposer « Mettre à jour » dans l'onglet Découverte
@@ -136,7 +144,11 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   jamais `min`/`max` en écriture : ce sont des bornes d'affichage. Une valeur signée exige des
   bornes symétriques.
 - Le cœur plafonne à **300 états par minute** et réévalue les scènes à chaque état : ne publier
-  que les changements.
+  que les changements. Le SDK ≥ 0.15 le fait : `publishChangedStates(states, { heartbeat })`
+  retient la dernière valeur par fonctionnalité et l'oublie quand un appareil est créé, mis à
+  jour ou supprimé. Pour forcer un renvoi, `forgetPublishedStates(id)` puis
+  `publishChangedStates` : un `publishStates` direct contourne cette mémoire, et le relevé
+  suivant renvoie tout une seconde fois.
 - Une intégration `device` ne reçoit pas la langue de l'utilisateur, une action de scène non
   plus (un widget, si) : prévoir un champ de config `language` si des textes partent du
   conteneur. Le superviseur injecte `TZ`, le fuseau de Gladys. La sandbox est limitée à 256 Mo.
@@ -176,6 +188,36 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+- **Node ≥ 22 refuse `privateDecrypt` avec `RSA_PKCS1_PADDING`** (CVE-2023-46809) ;
+  `publicEncrypt` en PKCS#1 v1.5 reste permis. Un faux serveur de test qui doit déchiffrer un mot
+  de passe chiffré ainsi passe par `RSA_NO_PADDING` et retire le bourrage à la main
+  (`test/helpers/fakeUgos.js`).
+
+## Pièges UGOS Pro (propres à ce dépôt)
+
+- L'API n'est **pas documentée**, et la session de code n'a pas de NAS : les fixtures sont
+  reconstruites d'après `Fracizz/ugnas-api` (MIT), la doc de `RCooLeR/UgosBridge` (MIT), et la
+  lecture seule de `metaneutrons/ugos-cli` et `Tom-Bom-badil/home-assistant_ugreen-nas` (tous deux
+  **GPL-3.0** : ne rien recopier). Une capture réelle anonymisée remplace une fixture dès qu'un
+  utilisateur en fournit une.
+- **Ne jamais appeler `storage/disk/smart/*`, `disk/detection` ni `disk/attribute`** : ces
+  points d'accès lancent `smartctl` et réveillent les disques en veille à chaque relevé (le projet
+  Home Assistant les a retirés pour cela en 2026.09). L'état du disque lu dans
+  `v2/storage/disk/list` suffit.
+- **Ne jamais réessayer un mot de passe refusé sur minuterie** : UGOS bloque une adresse après
+  quelques échecs (blocage automatique). Seuls l'enregistrement de la config, « Tester la
+  connexion » et le bouton du widget réessaient.
+- Un compte à **double authentification** répond `code 200` sans jeton (`enable_otp`,
+  `token_id`) : le signaler, ne pas le prendre pour un mot de passe faux.
+- `x-rsa-token` arrive en base64 d'un PEM PKCS#1, d'un PEM SPKI, d'un SPKI étiqueté « RSA PUBLIC
+  KEY », ou d'un DER : `loadPublicKey` accepte les quatre, `test/client.test.js` les fige.
+- Codes d'état (interface web, non vérifiés sur matériel) : pool 0 normal, 1 reconstruction,
+  2 dégradé, 3 défaillant ; volume 0 normal, 1 avertissement, 2 danger, 3 défaillant ; disque
+  0 indétectable, 1 normal, 2 avertissement, 3 critique, 4 panne, 5 verrouillé. Un code inconnu
+  n'alerte jamais.
+- Gladys **5.2.0** est sortie le 12/10/2026 ; ce dépôt ne s'appuie que sur des capacités
+  présentes en 5.1.4 (`gladys_version >=5.1.0`).
 
 ## Store
 

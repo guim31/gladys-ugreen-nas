@@ -1,0 +1,53 @@
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "common": {
+      "nas_name": "NASync",
+      "model": "DXP4800 Plus",
+      "model_series": "dxp",
+      "product_series": "nasync",
+      "serial": "UGTEST00000001",
+      "mac": ["02:00:5e:00:00:01"],
+      "system_version": "1.9.0.0075",
+      "beta": false,
+      "last_turn_on_time": "2026-10-01 08:00:00",
+      "run_time": 1058400,
+      "nas_owner": "-"
+    },
+    "hardware": {
+      "cpu": [
+        {
+          "model": "Intel(R) Pentium(R) Gold 8505",
+          "core": 5,
+          "thread": 6,
+          "ghz": 4400,
+          "temperature": 44
+        }
+      ],
+      "mem": [
+        {
+          "manufacturer": "Example",
+          "model": "EXAMPLE-DDR5-8G",
+          "size": 8589934592,
+          "mhz": "4800 MHz",
+          "is_ecc": false
+        }
+      ],
+      "net": [
+        {
+          "model": "eth0",
+          "ip": "192.0.2.50",
+          "mac": "02:00:5e:00:00:01",
+          "mask": "255.255.255.0",
+          "mtu": 1500,
+          "speed": 2500,
+          "duplex": ""
+        }
+      ],
+      "gpu": null,
+      "ups": null,
+      "usb": null
+    }
+  }
+}
