@@ -8,8 +8,8 @@
     "de": "Überwache ein UGREEN NASync (UGOS Pro): Prozessor, Speicher, Temperaturen, Volumes, Festplatten.",
     "es": "Supervise un NAS UGREEN NASync (UGOS Pro): procesador, memoria, temperaturas, volúmenes, discos."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-ugreen-nas:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/guim31/gladys-ugreen-nas:1.0.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-ugreen-nas/main/cover.png",
   "categories": ["network"],

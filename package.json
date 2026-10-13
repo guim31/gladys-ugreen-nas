@@ -1,6 +1,6 @@
 {
   "name": "gladys-ugreen-nas",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Gladys Assistant integration for UGREEN NASync (UGOS Pro): CPU, memory, temperatures, volumes and disks. Not affiliated with UGREEN.",
   "type": "module",

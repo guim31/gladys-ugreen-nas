@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-13
+
 ### Added
 
 - First version: monitors a UGREEN NASync running UGOS Pro over the local
@@ -25,4 +27,5 @@ the notes of the version's GitHub Release.
 - "Test the connection" action.
 - English, French, German and Spanish texts.
 
-[Unreleased]: https://github.com/guim31/gladys-ugreen-nas/commits/main
+[Unreleased]: https://github.com/guim31/gladys-ugreen-nas/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-ugreen-nas/releases/tag/v1.0.1
