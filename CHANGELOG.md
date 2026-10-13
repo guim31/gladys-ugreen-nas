@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-10-13
+
 ### Added
 
 - Documentation in German (`docs/de.md`) and Spanish (`docs/es.md`), published
@@ -40,5 +42,6 @@ the notes of the version's GitHub Release.
 - "Test the connection" action.
 - English, French, German and Spanish texts.
 
-[Unreleased]: https://github.com/guim31/gladys-ugreen-nas/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/guim31/gladys-ugreen-nas/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/guim31/gladys-ugreen-nas/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/guim31/gladys-ugreen-nas/releases/tag/v1.0.1
